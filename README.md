@@ -1,3 +1,5 @@
+# Link: https://spam-guard-email-and-sms-spam-class-zeta.vercel.app/
+
 # Email & SMS Spam Classification Platform (SpamGuard)
 
 End-to-end hybrid NLP & deep learning threat-screening platform combining **TF-IDF + Multinomial Naive Bayes**, a **PyTorch 2-Layer Bidirectional LSTM (`128d` embeddings)**, **PostgreSQL + `pgvector` HNSW similarity search**, and multi-surface interfaces (**React + Vite SPA**, **Flask**, **FastAPI**, and **Streamlit**).
