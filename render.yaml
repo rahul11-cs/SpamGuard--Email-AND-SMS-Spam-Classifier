@@ -1,0 +1,61 @@
+services:
+  - type: web
+    name: spam-classifier-flask-api
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m src.train
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT api.app:app
+    envVars:
+      - key: PGHOST
+        sync: false
+      - key: PGPORT
+        value: "5432"
+      - key: PGDATABASE
+        sync: false
+      - key: PGUSER
+        sync: false
+      - key: PGPASSWORD
+        sync: false
+      - key: PGSSLMODE
+        value: "require"
+      - key: ADMIN_API_TOKEN
+        generateValue: true
+      - key: ENABLE_PUBLIC_HISTORY
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        value: "https://spam-classifierx.vercel.app"
+
+  - type: web
+    name: spam-classifier-fastapi
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m src.train
+    startCommand: uvicorn api.fastapi_app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PGHOST
+        sync: false
+      - key: PGPORT
+        value: "5432"
+      - key: PGDATABASE
+        sync: false
+      - key: PGUSER
+        sync: false
+      - key: PGPASSWORD
+        sync: false
+      - key: PGSSLMODE
+        value: "require"
+      - key: ADMIN_API_TOKEN
+        generateValue: true
+      - key: ENABLE_PUBLIC_HISTORY
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        value: "https://spam-classifierx.vercel.app"
+
+  - type: web
+    name: spam-classifier-streamlit
+    env: python
+    buildCommand: pip install -r requirements.txt && python -m src.train
+    startCommand: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0
+    envVars:
+      - key: FLASK_API_URL
+        sync: false
+      - key: ENABLE_PUBLIC_HISTORY
+        value: "false"

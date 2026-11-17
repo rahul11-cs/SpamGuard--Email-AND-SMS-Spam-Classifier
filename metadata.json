@@ -1,0 +1,6 @@
+{
+  "name": "Email Spam Classification Platform",
+  "description": "Python NLP spam classification platform using TF-IDF, Multinomial Naive Bayes, Flask, Streamlit, and PostgreSQL with pgvector.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

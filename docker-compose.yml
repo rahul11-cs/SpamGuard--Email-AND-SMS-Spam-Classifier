@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: spam_pgvector
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PGDATABASE:?PGDATABASE must be set in .env}
+      POSTGRES_USER: ${PGUSER:?PGUSER must be set in .env}
+      POSTGRES_PASSWORD: ${PGPASSWORD:?PGPASSWORD must be set in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  flask_api:
+    build: .
+    container_name: spam_flask_api
+    restart: unless-stopped
+    command: gunicorn -w 2 -b 0.0.0.0:5000 api.app:app
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${PGDATABASE:?PGDATABASE must be set in .env}
+      PGUSER: ${PGUSER:?PGUSER must be set in .env}
+      PGPASSWORD: ${PGPASSWORD:?PGPASSWORD must be set in .env}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+      ENABLE_PUBLIC_HISTORY: ${ENABLE_PUBLIC_HISTORY:-false}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+
+  fastapi_service:
+    build: .
+    container_name: spam_fastapi_service
+    restart: unless-stopped
+    command: uvicorn api.fastapi_app:app --host 0.0.0.0 --port 8000
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${PGDATABASE:?PGDATABASE must be set in .env}
+      PGUSER: ${PGUSER:?PGUSER must be set in .env}
+      PGPASSWORD: ${PGPASSWORD:?PGPASSWORD must be set in .env}
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+      ENABLE_PUBLIC_HISTORY: ${ENABLE_PUBLIC_HISTORY:-false}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+
+  streamlit_ui:
+    build: .
+    container_name: spam_streamlit_ui
+    restart: unless-stopped
+    command: streamlit run streamlit_app.py --server.port=8501 --server.address=0.0.0.0
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${PGDATABASE:?PGDATABASE must be set in .env}
+      PGUSER: ${PGUSER:?PGUSER must be set in .env}
+      PGPASSWORD: ${PGPASSWORD:?PGPASSWORD must be set in .env}
+      ENABLE_PUBLIC_HISTORY: ${ENABLE_PUBLIC_HISTORY:-false}
+      FLASK_API_URL: http://flask_api:5000
+    ports:
+      - "8501:8501"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      flask_api:
+        condition: service_started
+    volumes:
+      - ./:/app
+
+volumes:
+  pgvector_data:

@@ -1,0 +1,19 @@
+# Exclude Python ML runtime, heavy binaries, and Docker files from Vercel frontend bundle
+api/
+artifacts/
+notebooks/
+tests/
+db/
+requirements.txt
+streamlit_app.py
+Dockerfile
+docker-compose.yml
+Procfile
+render.yaml
+*.pkl
+*.pt
+*.pptx
+docs/
+__pycache__/
+.venv/
+venv/
